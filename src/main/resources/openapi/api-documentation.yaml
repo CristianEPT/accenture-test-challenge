@@ -5,7 +5,7 @@ info:
   description: API to manage franchises, branches, and products.
 
 paths:
-  /franchises:
+  /franchise:
     post:
       summary: Create a new franchise
       operationId: createFranchise
@@ -25,7 +25,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FranchiseResponse'
 
-  /franchises/{franchiseId}/branches:
+  /franchise/{franchiseId}/branch:
     post:
       summary: Add a new branch to a franchise
       operationId: addBranch
@@ -51,7 +51,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/BranchResponse'
 
-  /franchises/{franchiseId}/branches/{branchName}/products:
+  /franchise/{franchiseId}/branch/{branchId}/product:
     post:
       summary: Add a new product to a branch
       operationId: addProduct
@@ -63,7 +63,7 @@ paths:
           required: true
           schema:
             type: string
-        - name: branchName
+        - name: branchId
           in: path
           required: true
           schema:
@@ -82,7 +82,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
 
-  /franchises/{franchiseId}/branches/{branchName}/products/{productName}:
+  /franchise/{franchiseId}/branch/{branchId}/product/{productId}:
     delete:
       summary: Delete a product from a branch
       operationId: deleteProduct
@@ -94,12 +94,12 @@ paths:
           required: true
           schema:
             type: string
-        - name: branchName
+        - name: branchId
           in: path
           required: true
           schema:
             type: string
-        - name: productName
+        - name: productId
           in: path
           required: true
           schema:
@@ -119,12 +119,12 @@ paths:
           required: true
           schema:
             type: string
-        - name: branchName
+        - name: branchId
           in: path
           required: true
           schema:
             type: string
-        - name: productName
+        - name: productId
           in: path
           required: true
           schema:
@@ -143,7 +143,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
 
-  /franchises/{franchiseId}/branches/top-products:
+  /franchise/{franchiseId}/branch/top-products:
     get:
       summary: Get the product with the highest stock per branch
       operationId: getTopProductsByBranch
@@ -199,6 +199,10 @@ components:
     BranchResponse:
       type: object
       properties:
+        franchiseId:
+          type: string
+        id:
+          type: string
         name:
           type: string
         products:
@@ -236,7 +240,9 @@ components:
     TopProductResponse:
       type: object
       properties:
-        branchName:
+        branchId:
+          type: string
+        productId:
           type: string
         productName:
           type: string

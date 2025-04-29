@@ -11,9 +11,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "branches")
-public class Branch {
+@Document(collection = "products")
+public class ProductEntity {
+
   @Id private String id;
   private String name;
-  private String franchiseId;
+  private Integer stock;
+  private String branchId;
 }

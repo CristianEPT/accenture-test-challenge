@@ -1,0 +1,244 @@
+openapi: 3.0.3
+info:
+  title: Management API
+  version: 1.0.0
+  description: API to manage franchises, branches, and products.
+
+paths:
+  /franchises:
+    post:
+      summary: Create a new franchise
+      operationId: createFranchise
+      tags:
+        - Franchise
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FranchiseRequest'
+      responses:
+        '201':
+          description: Franchise created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FranchiseResponse'
+
+  /franchises/{franchiseId}/branches:
+    post:
+      summary: Add a new branch to a franchise
+      operationId: addBranch
+      tags:
+        - Branch
+      parameters:
+        - name: franchiseId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchRequest'
+      responses:
+        '201':
+          description: Branch added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchResponse'
+
+  /franchises/{franchiseId}/branches/{branchName}/products:
+    post:
+      summary: Add a new product to a branch
+      operationId: addProduct
+      tags:
+        - Product
+      parameters:
+        - name: franchiseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductRequest'
+      responses:
+        '201':
+          description: Product added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /franchises/{franchiseId}/branches/{branchName}/products/{productName}:
+    delete:
+      summary: Delete a product from a branch
+      operationId: deleteProduct
+      tags:
+        - Product
+      parameters:
+        - name: franchiseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: productName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Product deleted successfully
+
+    put:
+      summary: Update stock of a product in a branch
+      operationId: updateProductStock
+      tags:
+        - Product
+      parameters:
+        - name: franchiseId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: branchName
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: productName
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStockRequest'
+      responses:
+        '200':
+          description: Stock updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+
+  /franchises/{franchiseId}/branches/top-products:
+    get:
+      summary: Get the product with the highest stock per branch
+      operationId: getTopProductsByBranch
+      tags:
+        - Product
+      parameters:
+        - name: franchiseId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of top stock products by branch
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TopProductResponse'
+
+components:
+  schemas:
+
+    FranchiseRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    FranchiseResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/BranchResponse'
+
+    BranchRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    BranchResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+
+    ProductRequest:
+      type: object
+      required:
+        - name
+        - stock
+      properties:
+        name:
+          type: string
+        stock:
+          type: integer
+
+    ProductResponse:
+      type: object
+      properties:
+        name:
+          type: string
+        stock:
+          type: integer
+
+    UpdateStockRequest:
+      type: object
+      required:
+        - stock
+      properties:
+        stock:
+          type: integer
+
+    TopProductResponse:
+      type: object
+      properties:
+        branchName:
+          type: string
+        productName:
+          type: string
+        stock:
+          type: integer

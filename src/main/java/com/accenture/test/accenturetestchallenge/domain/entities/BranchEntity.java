@@ -12,7 +12,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "branches")
-public class Branch {
+public class BranchEntity {
+
   @Id private String id;
   private String name;
   private String franchiseId;

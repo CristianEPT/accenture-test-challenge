@@ -199,6 +199,10 @@ components:
     BranchResponse:
       type: object
       properties:
+        franchiseId:
+          type: string
+        id:
+          type: string
         name:
           type: string
         products:

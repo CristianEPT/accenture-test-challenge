@@ -1,6 +1,16 @@
 # accenture-test-challenge
 
 
+### API Contract Generation
+
+This project uses a Contract-First approach for API development, where the OpenAPI specification (api-documentation.yaml) defines all endpoints, request bodies, responses, and parameters.
+
+The code generation is performed automatically at build time using OpenAPI Generator with the spring generator configured for Spring WebFlux (reactive=true).
+The generated code includes:
+•	API interfaces for controllers
+•	DTOs (request and response models)
+•	Standard annotations (@Valid, @RequestBody, @Schema, etc.)
+
 ### Data Model
 
 The data model is designed in a hierarchical and embedded structure to optimize data access and management:

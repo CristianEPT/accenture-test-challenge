@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.openapi.generator' version '7.0.1'
 }
 
 group = 'com.accenture.test'
@@ -26,6 +27,10 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    implementation 'io.swagger.core.v3:swagger-annotations:2.2.20'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
@@ -33,6 +38,33 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir("$buildDir/generated/src/main/java")
+        }
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$rootDir/src/main/resources/openapi/api-documentation.yaml"
+    outputDir = "$buildDir/generated"
+    apiPackage = "com.accenture.test.accenturetestchallenge.application.api"
+    modelPackage = "com.accenture.test.accenturetestchallenge.application"
+    configOptions = [
+            reactive: "true",
+            interfaceOnly: "true",
+            useTags: "true",
+            useJakartaEe : "true"
+    ]
+}
+
+tasks.named('compileJava') {
+    dependsOn tasks.named('openApiGenerate')
+    options.generatedSourceOutputDirectory = file("$buildDir/generated/src/main/java")
 }
 
 tasks.named('test') {

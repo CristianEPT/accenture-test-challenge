@@ -35,7 +35,7 @@ class BranchesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises/" + FRANCHISE_ID + "/branches")
+        .uri("/franchise/" + FRANCHISE_ID + "/branch")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()
@@ -56,7 +56,7 @@ class BranchesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises/" + FRANCHISE_ID + "/branches")
+        .uri("/franchise/" + FRANCHISE_ID + "/branch")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()
@@ -77,7 +77,7 @@ class BranchesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises/" + FRANCHISE_ID + "/branches")
+        .uri("/franchise/" + FRANCHISE_ID + "/branch")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()

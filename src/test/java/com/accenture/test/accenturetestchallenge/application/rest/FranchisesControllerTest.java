@@ -33,7 +33,7 @@ class FranchisesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises")
+        .uri("/franchise")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()
@@ -53,7 +53,7 @@ class FranchisesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises")
+        .uri("/franchise")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()
@@ -74,7 +74,7 @@ class FranchisesControllerTest {
 
     webTestClient
         .post()
-        .uri("/franchises")
+        .uri("/franchise")
         .contentType(MediaType.APPLICATION_JSON)
         .bodyValue(request)
         .exchange()

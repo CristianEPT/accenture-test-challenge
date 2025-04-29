@@ -5,7 +5,7 @@ info:
   description: API to manage franchises, branches, and products.
 
 paths:
-  /franchises:
+  /franchise:
     post:
       summary: Create a new franchise
       operationId: createFranchise
@@ -25,7 +25,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/FranchiseResponse'
 
-  /franchises/{franchiseId}/branches:
+  /franchise/{franchiseId}/branch:
     post:
       summary: Add a new branch to a franchise
       operationId: addBranch

@@ -1,7 +1,9 @@
 package com.accenture.test.accenturetestchallenge.domain.service;
 
+import com.accenture.test.accenturetestchallenge.domain.entities.FranchiseEntity;
 import com.accenture.test.accenturetestchallenge.domain.model.Franchise;
 import com.accenture.test.accenturetestchallenge.domain.ports.FranchisePort;
+import com.accenture.test.accenturetestchallenge.domain.repositories.FranchiseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,8 +13,54 @@ import reactor.core.publisher.Mono;
 @Service
 @RequiredArgsConstructor
 public class FranchiseService implements FranchisePort {
+
+  private final FranchiseRepository franchiseRepository;
+
   @Override
   public Mono<Franchise> createFranchise(String franchiseName) {
-    return Mono.empty();
+    log.info("Starting franchise creation process. Franchise name: {}", franchiseName);
+
+    return validateFranchiseName(franchiseName)
+        .map(this::buildFranchiseEntity)
+        .flatMap(franchiseRepository::save)
+        .map(this::mapEntityToDomain)
+        .doOnSuccess(
+            franchise ->
+                log.info(
+                    "Franchise created successfully. Franchise ID: {}, Name: {}",
+                    franchise.getId(),
+                    franchise.getName()))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error occurred during franchise creation. Franchise name: {}. Error: {}",
+                    franchiseName,
+                    error.getMessage(),
+                    error));
+  }
+
+  private Mono<String> validateFranchiseName(String franchiseName) {
+    if (franchiseName == null || franchiseName.trim().isEmpty()) {
+      log.warn("Invalid franchise name received: '{}'", franchiseName);
+      return Mono.error(new IllegalArgumentException("Franchise name must not be null or empty"));
+    }
+    return Mono.just(franchiseName.trim());
+  }
+
+  private FranchiseEntity buildFranchiseEntity(String franchiseName) {
+    FranchiseEntity entity = new FranchiseEntity();
+    entity.setName(franchiseName);
+    log.debug("FranchiseEntity built successfully for name: {}", franchiseName);
+    return entity;
+  }
+
+  private Franchise mapEntityToDomain(FranchiseEntity franchiseEntity) {
+    Franchise domain =
+        Franchise.builder().id(franchiseEntity.getId()).name(franchiseEntity.getName()).build();
+    log.debug(
+        "FranchiseEntity mapped to domain object. Franchise ID: {}, Name: {}",
+        domain.getId(),
+        domain.getName());
+    return domain;
   }
 }

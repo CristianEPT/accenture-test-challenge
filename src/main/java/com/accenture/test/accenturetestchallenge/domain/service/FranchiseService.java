@@ -63,4 +63,22 @@ public class FranchiseService implements FranchisePort {
         domain.getName());
     return domain;
   }
+
+  @Override
+  public Mono<Boolean> existsFranchise(String franchiseId) {
+    if (franchiseId == null || franchiseId.trim().isEmpty()) {
+      log.warn("Invalid franchise ID provided for existence check: '{}'", franchiseId);
+      return Mono.error(new IllegalArgumentException("Franchise ID must not be null or empty"));
+    }
+
+    log.debug("Checking existence of franchise with ID: {}", franchiseId);
+
+    return franchiseRepository
+        .existsById(franchiseId)
+        .doOnSuccess(exists -> log.debug("Franchise ID {} exists: {}", franchiseId, exists))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error while checking existence of franchise with ID: {}", franchiseId, error));
+  }
 }

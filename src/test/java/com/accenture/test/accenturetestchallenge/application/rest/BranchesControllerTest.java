@@ -73,7 +73,7 @@ class BranchesControllerTest {
     request.setName("North Pizzeria");
 
     Mockito.when(branchPort.createBranch(any(), any()))
-        .thenThrow(new RuntimeException("error saving franchise"));
+        .thenThrow(new RuntimeException("error saving branch"));
 
     webTestClient
         .post()

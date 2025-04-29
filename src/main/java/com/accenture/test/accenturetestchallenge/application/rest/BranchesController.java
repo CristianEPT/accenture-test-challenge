@@ -20,6 +20,7 @@ public class BranchesController implements BranchApi {
 
   private final BranchPort branchPort;
 
+  @Override
   public Mono<ResponseEntity<BranchResponse>> addBranch(
       String franchiseId, Mono<BranchRequest> branchRequest, ServerWebExchange exchange) {
 

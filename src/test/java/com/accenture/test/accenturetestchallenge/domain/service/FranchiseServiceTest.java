@@ -18,11 +18,9 @@ import reactor.test.StepVerifier;
 @ExtendWith(MockitoExtension.class)
 class FranchiseServiceTest {
 
-  @Mock
-  private FranchiseRepository franchiseRepository;
+  @Mock private FranchiseRepository franchiseRepository;
 
-  @InjectMocks
-  private FranchiseService franchiseService;
+  @InjectMocks private FranchiseService franchiseService;
 
   private static final String VALID_NAME = "Test Franchise";
 
@@ -77,5 +75,69 @@ class FranchiseServiceTest {
         .verify();
 
     verify(franchiseRepository).save(any(FranchiseEntity.class));
+  }
+
+  @Test
+  void validFranchiseID_shouldReturnTrueWhenFranchiseExists() {
+    String franchiseId = "123";
+    when(franchiseRepository.existsById(franchiseId)).thenReturn(Mono.just(true));
+
+    StepVerifier.create(franchiseService.existsFranchise(franchiseId))
+        .expectNext(true)
+        .verifyComplete();
+
+    verify(franchiseRepository).existsById(franchiseId);
+  }
+
+  @Test
+  void validFranchiseID_shouldReturnFalseWhenFranchiseDoesNotExist() {
+    String franchiseId = "456";
+    when(franchiseRepository.existsById(franchiseId)).thenReturn(Mono.just(false));
+
+    StepVerifier.create(franchiseService.existsFranchise(franchiseId))
+        .expectNext(false)
+        .verifyComplete();
+
+    verify(franchiseRepository).existsById(franchiseId);
+  }
+
+  @Test
+  void validFranchiseID_shouldReturnErrorWhenFranchiseIdIsNull() {
+    StepVerifier.create(franchiseService.existsFranchise(null))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().equals("Franchise ID must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(franchiseRepository);
+  }
+
+  @Test
+  void validFranchiseID_shouldReturnErrorWhenFranchiseIdIsEmpty() {
+    StepVerifier.create(franchiseService.existsFranchise("  "))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().equals("Franchise ID must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(franchiseRepository);
+  }
+
+  @Test
+  void validFranchiseID_shouldReturnErrorWhenRepositoryFails() {
+    String franchiseId = "999";
+    when(franchiseRepository.existsById(franchiseId))
+        .thenReturn(Mono.error(new RuntimeException("Database unavailable")));
+
+    StepVerifier.create(franchiseService.existsFranchise(franchiseId))
+        .expectErrorMatches(
+            error ->
+                error instanceof RuntimeException
+                    && error.getMessage().equals("Database unavailable"))
+        .verify();
+
+    verify(franchiseRepository).existsById(franchiseId);
   }
 }

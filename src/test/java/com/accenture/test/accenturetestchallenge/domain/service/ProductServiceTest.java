@@ -232,4 +232,117 @@ class ProductServiceTest {
     verify(productRepository).findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId);
     verify(productRepository).deleteById(productId);
   }
+
+  @Test
+  void updateProduct_shouldUpdateStockSuccessfully() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "p1";
+    int newStock = 20;
+
+    ProductEntity existing = new ProductEntity();
+    existing.setId(productId);
+    existing.setFranchiseId(franchiseId);
+    existing.setBranchId(branchId);
+    existing.setName("product 1");
+    existing.setStock(10);
+
+    ProductEntity updated = new ProductEntity();
+    updated.setId(productId);
+    updated.setFranchiseId(franchiseId);
+    updated.setBranchId(branchId);
+    updated.setName("product 1");
+    updated.setStock(newStock);
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId))
+        .thenReturn(Mono.just(existing));
+    when(productRepository.save(any())).thenReturn(Mono.just(updated));
+
+    StepVerifier.create(
+            productService.updateProductStock(franchiseId, branchId, productId, newStock))
+        .assertNext(
+            product -> {
+              assertEquals(productId, product.getId());
+              assertEquals("product 1", product.getName());
+              assertEquals(franchiseId, product.getFranchiseId());
+              assertEquals(branchId, product.getBranchId());
+              assertEquals(newStock, product.getStock());
+            })
+        .verifyComplete();
+
+    verify(productRepository).save(any());
+  }
+
+  @Test
+  void updateProduct_shouldReturnErrorWhenFranchiseIdIsNull() {
+    StepVerifier.create(productService.updateProductStock(null, "b1", "p1", 5))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().contains("must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void updateProduct_shouldReturnErrorWhenProductIdIsEmpty() {
+    StepVerifier.create(productService.updateProductStock("f1", "b1", "  ", 5))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().contains("must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void updateProduct_shouldReturnErrorWhenStockIsNegative() {
+    StepVerifier.create(productService.updateProductStock("f1", "b1", "p1", -1))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().contains("must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void updateProduct_shouldReturnErrorWhenProductNotFound() {
+    when(productRepository.findByFranchiseIdAndBranchIdAndId("f1", "b1", "p1"))
+        .thenReturn(Mono.empty());
+
+    StepVerifier.create(productService.updateProductStock("f1", "b1", "p1", 5))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().equals("Product not found"))
+        .verify();
+
+    verify(productRepository).findByFranchiseIdAndBranchIdAndId("f1", "b1", "p1");
+    verify(productRepository, never()).save(any());
+  }
+
+  @Test
+  void updateProduct_shouldReturnErrorWhenSaveFails() {
+    ProductEntity productEntity = new ProductEntity();
+    productEntity.setId("p1");
+    productEntity.setFranchiseId("f1");
+    productEntity.setBranchId("b1");
+    productEntity.setName("Sprite");
+    productEntity.setStock(10);
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId("f1", "b1", "p1"))
+        .thenReturn(Mono.just(productEntity));
+    when(productRepository.save(any())).thenReturn(Mono.error(new RuntimeException("DB error")));
+
+    StepVerifier.create(productService.updateProductStock("f1", "b1", "p1", 5))
+        .expectErrorMatches(
+            error -> error instanceof RuntimeException && error.getMessage().equals("DB error"))
+        .verify();
+
+    verify(productRepository).save(any());
+  }
 }

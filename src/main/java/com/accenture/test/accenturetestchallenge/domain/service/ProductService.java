@@ -107,12 +107,7 @@ public class ProductService implements ProductPort {
 
   @Override
   public Mono<Void> deleteProduct(String franchiseId, String branchId, String productId) {
-    if (franchiseId == null
-        || franchiseId.trim().isEmpty()
-        || branchId == null
-        || branchId.trim().isEmpty()
-        || productId == null
-        || productId.trim().isEmpty()) {
+    if (areEmpty(franchiseId, branchId, productId)) {
       log.warn(
           "Invalid input for deletion. FranchiseId: '{}', BranchId: '{}', ProductId: '{}'",
           franchiseId,
@@ -134,10 +129,46 @@ public class ProductService implements ProductPort {
                     "Error deleting product ID {}: {}", productId, error.getMessage(), error));
   }
 
+  private boolean areEmpty(String franchiseId, String branchId, String productId) {
+    return franchiseId == null
+        || franchiseId.trim().isEmpty()
+        || branchId == null
+        || branchId.trim().isEmpty()
+        || productId == null
+        || productId.trim().isEmpty();
+  }
+
   @Override
   public Mono<Product> updateProductStock(
       String franchiseId, String branchId, String productId, int stock) {
-    return Mono.empty();
+
+    if (areEmpty(franchiseId, branchId, productId) || stock < 0) {
+      log.warn(
+          "Invalid input for update stock. FranchiseId: '{}', BranchId: '{}', ProductId: '{}', Stock: '{}'",
+          franchiseId,
+          branchId,
+          productId,
+          stock);
+      return Mono.error(
+          new IllegalArgumentException(
+              "Franchise ID, Branch ID and Product ID must not be null or empty"));
+    }
+
+    return productRepository
+        .findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId)
+        .switchIfEmpty(Mono.error(new IllegalArgumentException("Product not found")))
+        .map(
+            product -> {
+              product.setStock(stock);
+              return product;
+            })
+        .flatMap(productRepository::save)
+        .map(this::mapEntityToDomain)
+        .doOnSuccess(v -> log.info("Product deleted successfully. ID: {}", productId))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error deleting product ID {}: {}", productId, error.getMessage(), error));
   }
 
   @Override

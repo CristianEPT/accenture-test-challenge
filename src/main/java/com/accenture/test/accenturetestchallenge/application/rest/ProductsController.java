@@ -3,6 +3,7 @@ package com.accenture.test.accenturetestchallenge.application.rest;
 import com.accenture.test.accenturetestchallenge.application.ProductRequest;
 import com.accenture.test.accenturetestchallenge.application.ProductResponse;
 import com.accenture.test.accenturetestchallenge.application.TopProductResponse;
+import com.accenture.test.accenturetestchallenge.application.UpdateProductNameRequest;
 import com.accenture.test.accenturetestchallenge.application.UpdateStockRequest;
 import com.accenture.test.accenturetestchallenge.application.api.ProductApi;
 import com.accenture.test.accenturetestchallenge.domain.model.Product;
@@ -90,5 +91,21 @@ public class ProductsController implements ProductApi {
 
   private Product buildProduct(ProductRequest productRequest) {
     return new Product(productRequest.getName(), productRequest.getStock());
+  }
+
+  @Override
+  public Mono<ResponseEntity<ProductResponse>> updateProductName(
+      String franchiseId,
+      String branchId,
+      String productId,
+      Mono<UpdateProductNameRequest> updateProductNameRequest,
+      ServerWebExchange exchange) {
+    return updateProductNameRequest
+        .map(UpdateProductNameRequest::getName)
+        .flatMap(
+            newProductName ->
+                productPort.updateProductName(franchiseId, branchId, productId, newProductName))
+        .map(this::mapDomainToResponse)
+        .map(productResponse -> ResponseEntity.status(HttpStatus.OK).body(productResponse));
   }
 }

@@ -38,4 +38,18 @@ public class BranchesController implements BranchApi {
     branchResponse.setFranchiseId(branch.getFranchiseId());
     return branchResponse;
   }
+
+  @Override
+  public Mono<ResponseEntity<BranchResponse>> updateBranch(
+      String franchiseId,
+      String branchId,
+      Mono<BranchRequest> branchRequest,
+      ServerWebExchange exchange) {
+
+    return branchRequest
+        .map(BranchRequest::getName)
+        .flatMap(newBranchName -> branchPort.updateBranchName(franchiseId, branchId, newBranchName))
+        .map(this::mapDomainToResponse)
+        .map(branchResponse -> ResponseEntity.status(HttpStatus.OK).body(branchResponse));
+  }
 }

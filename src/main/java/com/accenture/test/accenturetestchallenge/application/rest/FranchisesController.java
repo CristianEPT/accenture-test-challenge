@@ -37,4 +37,16 @@ public class FranchisesController implements FranchiseApi {
     franchiseResponse.setId(franchise.getId());
     return franchiseResponse;
   }
+
+  @Override
+  public Mono<ResponseEntity<FranchiseResponse>> updateFranchise(
+      String franchiseId, Mono<FranchiseRequest> franchiseRequest, ServerWebExchange exchange) {
+
+    return franchiseRequest
+        .map(FranchiseRequest::getName)
+        .flatMap(
+            newFranchiseName -> franchisePort.updateFranchiseName(franchiseId, newFranchiseName))
+        .map(this::mapDomainToResponse)
+        .map(response -> ResponseEntity.status(HttpStatus.OK).body(response));
+  }
 }

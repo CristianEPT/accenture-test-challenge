@@ -83,4 +83,33 @@ class FranchisesControllerTest {
         .expectBody()
         .consumeWith(result -> assertThat(result.getResponseBody()).isNotNull());
   }
+
+  @Test
+  void updateFranchise_whenAllSuccess() {
+    String franchiseId = "123";
+    String updatedName = "Updated Franchise";
+
+    FranchiseRequest request = new FranchiseRequest();
+    request.setName(updatedName);
+
+    Franchise updatedFranchise = new Franchise(franchiseId, updatedName);
+
+    Mockito.when(franchisePort.updateFranchiseName(franchiseId, updatedName))
+        .thenReturn(Mono.just(updatedFranchise));
+
+    webTestClient
+        .put()
+        .uri("/franchise/{id}", franchiseId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBody(FranchiseResponse.class)
+        .value(
+            response -> {
+              assertThat(response.getId()).isEqualTo(franchiseId);
+              assertThat(response.getName()).isEqualTo(updatedName);
+            });
+  }
 }

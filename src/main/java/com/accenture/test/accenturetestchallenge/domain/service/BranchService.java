@@ -78,4 +78,24 @@ public class BranchService implements BranchPort {
     }
     return Mono.just(branchName.trim());
   }
+
+  @Override
+  public Mono<Boolean> existsBranch(String franchiseId, String branchId) {
+    if (franchiseId == null
+        || franchiseId.trim().isEmpty()
+        || branchId == null
+        || branchId.trim().isEmpty()) {
+      log.warn("Invalid franchise ID '{}' or Invalid branch ID '{}' ", franchiseId, branchId);
+      return Mono.error(
+          new IllegalArgumentException("Franchise ID or Branch ID must not be null or empty"));
+    }
+
+    return branchRepository
+        .existsByFranchiseIdAndId(franchiseId, branchId)
+        .doOnSuccess(exists -> log.debug("branch ID {} exists: {}", branchId, exists))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error while checking existence of branch with ID: {}", branchId, error));
+  }
 }

@@ -97,6 +97,8 @@ class ProductsControllerTest {
   @Test
   void deleteProduct_whenAllSuccess() {
 
+    Mockito.when(productPort.deleteProduct(any(), any(), any())).thenReturn(Mono.empty());
+
     webTestClient
         .delete()
         .uri("/franchise/" + FRANCHISE_ID + "/branch/" + BRANCH_ID + "/product/123")

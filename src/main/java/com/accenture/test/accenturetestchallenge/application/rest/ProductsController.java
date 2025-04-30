@@ -39,8 +39,9 @@ public class ProductsController implements ProductApi {
   @Override
   public Mono<ResponseEntity<Void>> deleteProduct(
       String franchiseId, String branchId, String productId, ServerWebExchange exchange) {
-    productPort.deleteProduct(franchiseId, branchId, productId);
-    return Mono.just(ResponseEntity.status(HttpStatus.OK).build());
+    return productPort
+        .deleteProduct(franchiseId, branchId, productId)
+        .then(Mono.fromCallable(() -> ResponseEntity.status(HttpStatus.OK).build()));
   }
 
   @Override

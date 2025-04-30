@@ -18,4 +18,5 @@ public class ProductEntity {
   private String name;
   private Integer stock;
   private String branchId;
+  private String franchiseId;
 }

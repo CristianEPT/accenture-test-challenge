@@ -1,5 +1,6 @@
 package com.accenture.test.accenturetestchallenge.domain.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -139,5 +140,33 @@ class FranchiseServiceTest {
         .verify();
 
     verify(franchiseRepository).existsById(franchiseId);
+  }
+
+  @Test
+  void shouldUpdateFranchiseNameSuccessfully() {
+    String franchiseId = "f1";
+    String newName = "Updated Name";
+
+    FranchiseEntity entity = new FranchiseEntity();
+    entity.setId(franchiseId);
+    entity.setName("Old Name");
+
+    FranchiseEntity savedEntity = new FranchiseEntity();
+    savedEntity.setId(franchiseId);
+    savedEntity.setName(newName);
+
+    when(franchiseRepository.findById(franchiseId)).thenReturn(Mono.just(entity));
+    when(franchiseRepository.save(any())).thenReturn(Mono.just(savedEntity));
+
+    StepVerifier.create(franchiseService.updateFranchiseName(franchiseId, newName))
+        .assertNext(
+            franchise -> {
+              assertEquals(franchiseId, franchise.getId());
+              assertEquals(newName, franchise.getName());
+            })
+        .verifyComplete();
+
+    verify(franchiseRepository).findById(franchiseId);
+    verify(franchiseRepository).save(any());
   }
 }

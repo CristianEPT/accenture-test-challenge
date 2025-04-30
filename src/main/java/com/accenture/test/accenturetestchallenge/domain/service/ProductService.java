@@ -164,11 +164,11 @@ public class ProductService implements ProductPort {
             })
         .flatMap(productRepository::save)
         .map(this::mapEntityToDomain)
-        .doOnSuccess(v -> log.info("Product deleted successfully. ID: {}", productId))
+        .doOnSuccess(v -> log.info("Product updated successfully. ID: {}", productId))
         .doOnError(
             error ->
                 log.error(
-                    "Error deleting product ID {}: {}", productId, error.getMessage(), error));
+                    "Error updating product ID {}: {}", productId, error.getMessage(), error));
   }
 
   @Override
@@ -209,5 +209,40 @@ public class ProductService implements ProductPort {
                     franchiseId,
                     error.getMessage(),
                     error));
+  }
+
+  @Override
+  public Mono<Product> updateProductName(
+      String franchiseId, String branchId, String productId, String newProductName) {
+
+    if (areEmpty(franchiseId, branchId, productId)
+        || newProductName == null
+        || newProductName.isEmpty()) {
+      log.warn(
+          "Invalid input for update stock. FranchiseId: '{}', BranchId: '{}', ProductId: '{}', newProductName: '{}'",
+          franchiseId,
+          branchId,
+          productId,
+          newProductName);
+      return Mono.error(
+          new IllegalArgumentException(
+              "Franchise ID, Branch ID, Product ID and new Product name must not be null or empty"));
+    }
+
+    return productRepository
+        .findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId)
+        .switchIfEmpty(Mono.error(new IllegalArgumentException("Product not found")))
+        .map(
+            product -> {
+              product.setName(newProductName);
+              return product;
+            })
+        .flatMap(productRepository::save)
+        .map(this::mapEntityToDomain)
+        .doOnSuccess(v -> log.info("Product name updated successfully. ID: {}", productId))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error updating product ID {}: {}", productId, error.getMessage(), error));
   }
 }

@@ -53,3 +53,38 @@ Your application will now be available at:
 ```
 http://localhost:8080
 ```
+### Running app from docker compose
+
+#### Prerequisites
+
+- Java 17+
+- Docker and Docker Compose installed
+- App JAR built with Gradle or Maven
+
+#### Step 1: Build the App
+
+```bash
+./gradlew clean bootJar
+```
+
+This creates `build/libs/app.jar`.
+
+#### Step 2: Run Everything
+
+```bash
+docker compose -f docker-compose-full.yml up --build
+```
+#### Step 3: Clean Up Resources
+
+To stop and remove containers, networks, and volumes:
+
+```bash
+docker compose down --volumes --remove-orphans
+```
+
+#### Health Check
+
+Once up, visit:
+
+- App: [http://localhost:8080](http://localhost:8080)
+- Mongo Express: [http://localhost:8081](http://localhost:8081)

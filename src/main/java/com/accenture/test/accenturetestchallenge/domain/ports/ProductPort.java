@@ -8,7 +8,7 @@ public interface ProductPort {
 
   Mono<Product> createProduct(String franchiseId, String branchId, Product product);
 
-  void deleteProduct(String franchiseId, String branchId, String productId);
+  Mono<Void> deleteProduct(String franchiseId, String branchId, String productId);
 
   Mono<Product> updateProductStock(
       String franchiseId, String branchId, String productId, int stock);

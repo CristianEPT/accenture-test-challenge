@@ -410,4 +410,43 @@ class ProductServiceTest {
 
     verify(productRepository).findByFranchiseId(franchiseId);
   }
+
+  @Test
+  void shouldUpdateProductNameSuccessfully() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "p1";
+    String newName = "Updated Product";
+
+    ProductEntity existing = new ProductEntity();
+    existing.setId(productId);
+    existing.setFranchiseId(franchiseId);
+    existing.setBranchId(branchId);
+    existing.setName("Old Product");
+    existing.setStock(10);
+
+    ProductEntity updated = new ProductEntity();
+    updated.setId(productId);
+    updated.setFranchiseId(franchiseId);
+    updated.setBranchId(branchId);
+    updated.setName(newName);
+    updated.setStock(10);
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId))
+        .thenReturn(Mono.just(existing));
+    when(productRepository.save(any())).thenReturn(Mono.just(updated));
+
+    StepVerifier.create(productService.updateProductName(franchiseId, branchId, productId, newName))
+        .assertNext(
+            product -> {
+              assertEquals(productId, product.getId());
+              assertEquals(newName, product.getName());
+              assertEquals(franchiseId, product.getFranchiseId());
+              assertEquals(branchId, product.getBranchId());
+              assertEquals(10, product.getStock());
+            })
+        .verifyComplete();
+
+    verify(productRepository).save(any());
+  }
 }

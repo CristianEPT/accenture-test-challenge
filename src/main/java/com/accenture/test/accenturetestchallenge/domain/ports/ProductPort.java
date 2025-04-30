@@ -14,4 +14,7 @@ public interface ProductPort {
       String franchiseId, String branchId, String productId, int stock);
 
   Flux<Product> getTopProductsByFranchise(String franchiseId);
+
+  Mono<Product> updateProductName(
+      String franchiseId, String branchId, String productId, String newProductName);
 }

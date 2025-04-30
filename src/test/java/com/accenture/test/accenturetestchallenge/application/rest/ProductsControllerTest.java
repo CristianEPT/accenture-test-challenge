@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import com.accenture.test.accenturetestchallenge.application.ProductRequest;
 import com.accenture.test.accenturetestchallenge.application.ProductResponse;
 import com.accenture.test.accenturetestchallenge.application.TopProductResponse;
+import com.accenture.test.accenturetestchallenge.application.UpdateProductNameRequest;
 import com.accenture.test.accenturetestchallenge.application.UpdateStockRequest;
 import com.accenture.test.accenturetestchallenge.domain.model.Product;
 import com.accenture.test.accenturetestchallenge.domain.ports.ProductPort;
@@ -158,6 +159,48 @@ class ProductsControllerTest {
               assertThat(topProduct.getProductId()).isEqualTo("123");
               assertThat(topProduct.getProductName()).isEqualTo("pizza test");
               assertThat(topProduct.getStock()).isEqualTo(3);
+            });
+  }
+
+  @Test
+  void updateProductName_whenAllSuccess() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "p1";
+    String updatedName = "Updated Product";
+
+    UpdateProductNameRequest request = new UpdateProductNameRequest();
+    request.setName(updatedName);
+
+    Product updatedProduct =
+        Product.builder()
+            .id(productId)
+            .branchId(branchId)
+            .franchiseId(franchiseId)
+            .name(updatedName)
+            .stock(10)
+            .build();
+
+    Mockito.when(productPort.updateProductName(franchiseId, branchId, productId, updatedName))
+        .thenReturn(Mono.just(updatedProduct));
+
+    webTestClient
+        .put()
+        .uri(
+            "/franchise/{franchiseId}/branch/{branchId}/product/{productId}/set-name",
+            franchiseId,
+            branchId,
+            productId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBody(ProductResponse.class)
+        .value(
+            response -> {
+              assertThat(response.getStock()).isEqualTo(10);
+              assertThat(response.getName()).isEqualTo(updatedName);
             });
   }
 }

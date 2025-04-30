@@ -8,4 +8,6 @@ public interface BranchPort {
   Mono<Branch> createBranch(String franchiseId, String branchName);
 
   Mono<Boolean> existsBranch(String franchiseId, String branchId);
+
+  Mono<Branch> updateBranchName(String franchiseId, String branchId, String newBranchName);
 }

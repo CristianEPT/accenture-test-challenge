@@ -86,4 +86,36 @@ class BranchesControllerTest {
         .expectBody()
         .consumeWith(result -> assertThat(result.getResponseBody()).isNotNull());
   }
+
+  @Test
+  void updateBranch_whenAllSuccess() {
+    String franchiseId = FRANCHISE_ID;
+    String branchId = "1";
+    String updatedName = "Updated Branch";
+
+    BranchRequest request = new BranchRequest();
+    request.setName(updatedName);
+
+    Branch updatedBranch =
+        Branch.builder().id(branchId).franchiseId(franchiseId).name(updatedName).build();
+
+    Mockito.when(branchPort.updateBranchName(franchiseId, branchId, updatedName))
+        .thenReturn(Mono.just(updatedBranch));
+
+    webTestClient
+        .put()
+        .uri("/franchise/{franchiseId}/branch/{branchId}", franchiseId, branchId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .bodyValue(request)
+        .exchange()
+        .expectStatus()
+        .isOk()
+        .expectBody(BranchResponse.class)
+        .value(
+            response -> {
+              assertThat(response.getId()).isEqualTo(branchId);
+              assertThat(response.getFranchiseId()).isEqualTo(franchiseId);
+              assertThat(response.getName()).isEqualTo(updatedName);
+            });
+  }
 }

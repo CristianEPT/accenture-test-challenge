@@ -173,6 +173,41 @@ public class ProductService implements ProductPort {
 
   @Override
   public Flux<Product> getTopProductsByFranchise(String franchiseId) {
-    return Flux.empty();
+    if (franchiseId == null || franchiseId.trim().isEmpty()) {
+      log.warn("Invalid franchise ID received for top products: '{}'", franchiseId);
+      return Flux.error(new IllegalArgumentException("Franchise ID must not be null or empty"));
+    }
+
+    return productRepository
+        .findByFranchiseId(franchiseId)
+        .map(this::mapEntityToDomain)
+        .groupBy(Product::getBranchId)
+        .flatMap(
+            groupedFlux ->
+                groupedFlux
+                    .sort(
+                        (firstProductStock, secondProductStock) ->
+                            Integer.compare(
+                                secondProductStock.getStock(), firstProductStock.getStock()))
+                    .next())
+        .doOnNext(
+            product ->
+                log.debug(
+                    "Top product for branch {} in franchise {}: {} (stock {})",
+                    product.getBranchId(),
+                    franchiseId,
+                    product.getName(),
+                    product.getStock()))
+        .doOnComplete(
+            () ->
+                log.info(
+                    "Top products by branch fetched successfully for franchise {}", franchiseId))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error fetching top products for franchise {}: {}",
+                    franchiseId,
+                    error.getMessage(),
+                    error));
   }
 }

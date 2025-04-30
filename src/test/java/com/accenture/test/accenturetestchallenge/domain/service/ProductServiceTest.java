@@ -13,11 +13,13 @@ import com.accenture.test.accenturetestchallenge.domain.model.Product;
 import com.accenture.test.accenturetestchallenge.domain.ports.BranchPort;
 import com.accenture.test.accenturetestchallenge.domain.ports.FranchisePort;
 import com.accenture.test.accenturetestchallenge.domain.repositories.ProductRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -344,5 +346,68 @@ class ProductServiceTest {
         .verify();
 
     verify(productRepository).save(any());
+  }
+
+  @Test
+  void getTopProducts_shouldReturnErrorWhenFranchiseIdIsNull() {
+    StepVerifier.create(productService.getTopProductsByFranchise(null))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().equals("Franchise ID must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void getTopProducts_shouldReturnTopProductPerBranchSuccessfully() {
+    String franchiseId = "f1";
+
+    ProductEntity p1 = new ProductEntity();
+    p1.setId("p1");
+    p1.setFranchiseId(franchiseId);
+    p1.setBranchId("A");
+    p1.setName("Product A1");
+    p1.setStock(5);
+
+    ProductEntity p2 = new ProductEntity();
+    p2.setId("p2");
+    p2.setFranchiseId(franchiseId);
+    p2.setBranchId("A");
+    p2.setName("Product A2");
+    p2.setStock(10);
+
+    ProductEntity p3 = new ProductEntity();
+    p3.setId("p3");
+    p3.setFranchiseId(franchiseId);
+    p3.setBranchId("B");
+    p3.setName("Product B1");
+    p3.setStock(20);
+
+    when(productRepository.findByFranchiseId(franchiseId))
+        .thenReturn(Flux.fromIterable(List.of(p1, p2, p3)));
+
+    StepVerifier.create(productService.getTopProductsByFranchise(franchiseId))
+        .expectNextMatches(product -> product.getBranchId().equals("A") && product.getStock() == 10)
+        .expectNextMatches(product -> product.getBranchId().equals("B") && product.getStock() == 20)
+        .verifyComplete();
+
+    verify(productRepository).findByFranchiseId(franchiseId);
+  }
+
+  @Test
+  void getTopProducts_shouldReturnErrorWhenRepositoryFails() {
+    String franchiseId = "f1";
+
+    when(productRepository.findByFranchiseId(franchiseId))
+        .thenReturn(Flux.error(new RuntimeException("DB error")));
+
+    StepVerifier.create(productService.getTopProductsByFranchise(franchiseId))
+        .expectErrorMatches(
+            error -> error instanceof RuntimeException && error.getMessage().equals("DB error"))
+        .verify();
+
+    verify(productRepository).findByFranchiseId(franchiseId);
   }
 }

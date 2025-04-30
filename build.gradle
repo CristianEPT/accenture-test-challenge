@@ -70,3 +70,7 @@ tasks.named('compileJava') {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+bootJar {
+    archiveFileName = 'app.jar'
+}

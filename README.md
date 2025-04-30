@@ -21,3 +21,35 @@ The data model is designed in a hierarchical and embedded structure to optimize 
 All branch and product information is embedded within the franchise document, enabling efficient operations and fast queries in MongoDB.
 
 ![img.png](imgs/data_model.png)
+
+### Running the Reactive Application with Docker
+
+#### 1. Build the Project
+
+If not already done:
+
+```bash
+./gradlew clean bootJar
+```
+
+This generates the JAR file in `build/libs/app.jar`.
+
+#### 2. Build the Docker Image
+
+From the root directory of the project (where the Dockerfile is located):
+
+```bash
+docker build -t accenture-test-challenge .
+```
+
+#### 3. Run the Docker Container
+
+```bash
+docker run -p 8080:8080 accenture-test-challenge
+```
+
+Your application will now be available at:
+
+```
+http://localhost:8080
+```

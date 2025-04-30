@@ -106,7 +106,33 @@ public class ProductService implements ProductPort {
   }
 
   @Override
-  public void deleteProduct(String franchiseId, String branchId, String productId) {}
+  public Mono<Void> deleteProduct(String franchiseId, String branchId, String productId) {
+    if (franchiseId == null
+        || franchiseId.trim().isEmpty()
+        || branchId == null
+        || branchId.trim().isEmpty()
+        || productId == null
+        || productId.trim().isEmpty()) {
+      log.warn(
+          "Invalid input for deletion. FranchiseId: '{}', BranchId: '{}', ProductId: '{}'",
+          franchiseId,
+          branchId,
+          productId);
+      return Mono.error(
+          new IllegalArgumentException(
+              "Franchise ID, Branch ID and Product ID must not be null or empty"));
+    }
+
+    return productRepository
+        .findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId)
+        .switchIfEmpty(Mono.error(new IllegalArgumentException("Product not found")))
+        .flatMap(product -> productRepository.deleteById(productId))
+        .doOnSuccess(v -> log.info("Product deleted successfully. ID: {}", productId))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error deleting product ID {}: {}", productId, error.getMessage(), error));
+  }
 
   @Override
   public Mono<Product> updateProductStock(

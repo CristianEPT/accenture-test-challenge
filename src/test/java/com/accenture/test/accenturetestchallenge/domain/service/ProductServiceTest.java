@@ -2,6 +2,8 @@ package com.accenture.test.accenturetestchallenge.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -130,5 +132,104 @@ class ProductServiceTest {
         .verify();
 
     verify(productRepository).save(any());
+  }
+
+  @Test
+  void deleteProduct_shouldDeleteProductSuccessfully() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "p1";
+
+    ProductEntity productEntity = new ProductEntity();
+    productEntity.setId(productId);
+    productEntity.setFranchiseId(franchiseId);
+    productEntity.setBranchId(branchId);
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId))
+        .thenReturn(Mono.just(productEntity));
+    when(productRepository.deleteById(productId)).thenReturn(Mono.empty());
+
+    StepVerifier.create(productService.deleteProduct(franchiseId, branchId, productId))
+        .verifyComplete();
+
+    verify(productRepository).findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId);
+    verify(productRepository).deleteById(productId);
+  }
+
+  @Test
+  void deleteProduct_shouldReturnErrorWhenFranchiseIdIsNull() {
+    String franchiseId = null;
+    String branchId = "b1";
+    String productId = "p1";
+
+    StepVerifier.create(productService.deleteProduct(franchiseId, branchId, productId))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().contains("must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void deleteProduct_shouldReturnErrorWhenProductIdIsEmpty() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = " ";
+
+    StepVerifier.create(productService.deleteProduct(franchiseId, branchId, productId))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().contains("must not be null or empty"))
+        .verify();
+
+    verifyNoInteractions(productRepository);
+  }
+
+  @Test
+  void deleteProduct_shouldReturnErrorWhenProductNotFound() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "not-found";
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId))
+        .thenReturn(Mono.empty());
+
+    StepVerifier.create(productService.deleteProduct(franchiseId, branchId, productId))
+        .expectErrorMatches(
+            error ->
+                error instanceof IllegalArgumentException
+                    && error.getMessage().equals("Product not found"))
+        .verify();
+
+    verify(productRepository).findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId);
+    verify(productRepository, never()).deleteById(anyString());
+  }
+
+  @Test
+  void deleteProduct_shouldReturnErrorWhenDeleteFails() {
+    String franchiseId = "f1";
+    String branchId = "b1";
+    String productId = "p1";
+
+    ProductEntity productEntity = new ProductEntity();
+    productEntity.setId(productId);
+    productEntity.setFranchiseId(franchiseId);
+    productEntity.setBranchId(branchId);
+
+    when(productRepository.findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId))
+        .thenReturn(Mono.just(productEntity));
+    when(productRepository.deleteById(productId))
+        .thenReturn(Mono.error(new RuntimeException("DB failure")));
+
+    StepVerifier.create(productService.deleteProduct(franchiseId, branchId, productId))
+        .expectErrorMatches(
+            error -> error instanceof RuntimeException && error.getMessage().equals("DB failure"))
+        .verify();
+
+    verify(productRepository).findByFranchiseIdAndBranchIdAndId(franchiseId, branchId, productId);
+    verify(productRepository).deleteById(productId);
   }
 }

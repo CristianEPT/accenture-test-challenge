@@ -9,4 +9,6 @@ import reactor.core.publisher.Mono;
 public interface BranchRepository extends ReactiveMongoRepository<BranchEntity, String> {
 
   Mono<Boolean> existsByFranchiseIdAndId(String franchiseId, String branchId);
+
+  Mono<BranchEntity> findByFranchiseIdAndId(String franchiseId, String branchId);
 }

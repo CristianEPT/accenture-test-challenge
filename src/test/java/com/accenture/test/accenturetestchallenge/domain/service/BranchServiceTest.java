@@ -136,4 +136,36 @@ class BranchServiceTest {
     verify(franchisePort).existsFranchise(VALID_FRANCHISE_ID);
     verify(branchRepository).save(any());
   }
+
+  @Test
+  void shouldUpdateBranchNameSuccessfully() {
+    String franchiseId = VALID_FRANCHISE_ID;
+    String branchId = "1";
+    String newName = "Updated Branch";
+
+    BranchEntity existing = new BranchEntity();
+    existing.setId(branchId);
+    existing.setFranchiseId(franchiseId);
+    existing.setName("Old Name");
+
+    BranchEntity updated = new BranchEntity();
+    updated.setId(branchId);
+    updated.setFranchiseId(franchiseId);
+    updated.setName(newName);
+
+    when(branchRepository.findByFranchiseIdAndId(franchiseId, branchId))
+            .thenReturn(Mono.just(existing));
+    when(branchRepository.save(any())).thenReturn(Mono.just(updated));
+
+    StepVerifier.create(branchService.updateBranchName(franchiseId, branchId, newName))
+            .assertNext(branch -> {
+              assertEquals(branchId, branch.getId());
+              assertEquals(franchiseId, branch.getFranchiseId());
+              assertEquals(newName, branch.getName());
+            })
+            .verifyComplete();
+
+    verify(branchRepository).findByFranchiseIdAndId(franchiseId, branchId);
+    verify(branchRepository).save(any());
+  }
 }

@@ -95,7 +95,34 @@ public class BranchService implements BranchPort {
         .doOnSuccess(exists -> log.debug("branch ID {} exists: {}", branchId, exists))
         .doOnError(
             error ->
-                log.error(
-                    "Error while checking existence of branch with ID: {}", branchId, error));
+                log.error("Error while checking existence of branch with ID: {}", branchId, error));
+  }
+
+  @Override
+  public Mono<Branch> updateBranchName(String franchiseId, String branchId, String newBranchName) {
+
+    if (franchiseId == null
+        || franchiseId.trim().isEmpty()
+        || branchId == null
+        || branchId.trim().isEmpty()) {
+
+      log.warn("Invalid franchise ID '{}' or Invalid branch ID '{}' ", franchiseId, branchId);
+      return Mono.error(
+          new IllegalArgumentException("Franchise ID or Branch ID must not be null or empty"));
+    }
+
+    return branchRepository
+        .findByFranchiseIdAndId(franchiseId, branchId)
+        .map(
+            branchEntity -> {
+              branchEntity.setName(newBranchName);
+              return branchEntity;
+            })
+        .flatMap(branchRepository::save)
+        .map(this::mapEntityToDomain)
+        .doOnSuccess(branch -> log.info("Branch updating successfully. ID: {}", branch.getId()))
+        .doOnError(
+            error ->
+                log.error("Error updating Branch ID {}: {}", branchId, error.getMessage(), error));
   }
 }

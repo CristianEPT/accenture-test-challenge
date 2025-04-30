@@ -8,4 +8,6 @@ public interface FranchisePort {
   Mono<Franchise> createFranchise(String franchiseName);
 
   Mono<Boolean> existsFranchise(String franchiseId);
+
+  Mono<Franchise> updateFranchiseName(String franchiseId, String newFranchiseName);
 }

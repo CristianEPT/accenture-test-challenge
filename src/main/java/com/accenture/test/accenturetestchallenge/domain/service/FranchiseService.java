@@ -81,4 +81,28 @@ public class FranchiseService implements FranchisePort {
                 log.error(
                     "Error while checking existence of franchise with ID: {}", franchiseId, error));
   }
+
+  @Override
+  public Mono<Franchise> updateFranchiseName(String franchiseId, String newFranchiseName) {
+
+    if (franchiseId == null || franchiseId.trim().isEmpty()) {
+      log.warn("Invalid franchise ID provided for update check: '{}'", franchiseId);
+      return Mono.error(new IllegalArgumentException("Franchise ID must not be null or empty"));
+    }
+    return franchiseRepository
+        .findById(franchiseId)
+        .map(
+            franchiseEntity -> {
+              franchiseEntity.setName(newFranchiseName);
+              return franchiseEntity;
+            })
+        .flatMap(franchiseRepository::save)
+        .map(this::mapEntityToDomain)
+        .doOnSuccess(
+            franchise -> log.info("Franchise updating successfully. ID: {}", franchise.getId()))
+        .doOnError(
+            error ->
+                log.error(
+                    "Error updating franchise ID {}: {}", franchiseId, error.getMessage(), error));
+  }
 }
